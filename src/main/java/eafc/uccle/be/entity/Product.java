@@ -1,5 +1,6 @@
 package eafc.uccle.be.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
@@ -7,6 +8,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.Set;
 
 @Entity
 @Table(name = "product")
@@ -15,30 +17,17 @@ public class Product {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
+    @Column(name = "id_product")
     private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "category_id", nullable = false)
-    private ProductCategory category;
-
-    @Column(name = "sku")
-    private String sku;
-
-    @Column(name = "name")
+    @Column(name = "product_name")
     private String name;
 
-    @Column(name = "description")
-    private String description;
+    @Column(name = "product_description")
+    private String productDescription;
 
     @Column(name = "unit_price")
     private BigDecimal unitPrice;
-
-    @Column(name = "image_url")
-    private String imageUrl;
-
-    @Column(name = "active")
-    private boolean active;
 
     @Column(name = "units_in_stock")
     private int unitsInStock;
@@ -50,5 +39,13 @@ public class Product {
     @Column(name = "last_updated")
     @UpdateTimestamp
     private Date lastUpdated;
+
+    @ManyToOne
+    @JoinColumn(name = "id_category", nullable = false)
+    @JsonIgnore
+    private Category category;
+
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<Image> images;
 
 }
