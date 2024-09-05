@@ -5,6 +5,7 @@ import lombok.NonNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import java.util.Optional;
 
@@ -16,5 +17,11 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     @NonNull
     Optional<Product> findById(@NonNull @Param("id_product") Long idProduct);
+
+    @Query("SELECT p FROM Product p LEFT JOIN Comment c ON p.id = c.product.id WHERE p.category.id = :categoryId GROUP BY p.id ORDER BY AVG(c.grade) DESC")
+    Page<Product> findByCategoryIdOrderByAverageRating(Long categoryId, Pageable pageable);
+
+    @Query("SELECT p FROM Product p LEFT JOIN Comment c ON p.id = c.product.id WHERE p.name LIKE %:name% GROUP BY p.id ORDER BY AVG(c.grade) DESC")
+    Page<Product> findByNameContainingOrderByAverageRating(String name, Pageable pageable);
 
 }

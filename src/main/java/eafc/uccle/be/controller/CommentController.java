@@ -1,5 +1,6 @@
 package eafc.uccle.be.controller;
 
+import eafc.uccle.be.dto.ProductRatingDto;
 import eafc.uccle.be.entity.Comment;
 import eafc.uccle.be.service.CommentService;
 import org.springframework.data.domain.Pageable;
@@ -7,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 @CrossOrigin("http://localhost:4200")
@@ -57,6 +59,12 @@ public class CommentController {
                 "averageGrade", averageGrade
         );
         return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    @GetMapping("/average-ratings")
+    public ResponseEntity<Map<Long, Double>> getAverageRatingForProducts() {
+        Map<Long, Double> averageRatings = commentService.getAverageRatingForProducts();
+        return new ResponseEntity<>(averageRatings, HttpStatus.OK);
     }
 
 }

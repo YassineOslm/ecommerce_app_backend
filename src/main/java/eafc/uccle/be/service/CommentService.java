@@ -4,6 +4,7 @@ import eafc.uccle.be.dao.CommentRepository;
 import eafc.uccle.be.dao.ProductRepository;
 import eafc.uccle.be.dao.UserRepository;
 import eafc.uccle.be.dto.CommentDto;
+import eafc.uccle.be.dto.ProductRatingDto;
 import eafc.uccle.be.entity.Comment;
 import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
@@ -67,5 +68,16 @@ public class CommentService {
 
     public Double getAverageGradeByProductId(Long productId) {
         return Math.round(commentRepository.findAverageGradeByProductId(productId) * 10.0) / 10.0;
+    }
+
+    public Map<Long, Double> getAverageRatingForProducts() {
+        List<Object[]> results = commentRepository.findAverageRatingForProducts();
+
+        return results.stream().collect(
+                Collectors.toMap(
+                        result -> ((Number) result[0]).longValue(),
+                        result -> ((Number) result[1]).doubleValue()
+                )
+        );
     }
 }

@@ -22,22 +22,31 @@ public class ProductService {
     }
 
     public Page<Product> getProductByCategoryId(Long id, String sortBy, boolean ascending, Pageable pageable){
-        if (!"none".equalsIgnoreCase(sortBy)) {
+        Page<Product> products;
+        if ("noFilter".equalsIgnoreCase(sortBy)) {
+            products = productRepository.findByCategoryId(id, pageable);
+        } else if ("rating".equalsIgnoreCase(sortBy)) {
+            products = productRepository.findByCategoryIdOrderByAverageRating(id, pageable);
+        } else {
             Sort sort = Sort.by(ascending ? Sort.Direction.ASC : Sort.Direction.DESC, sortBy);
             pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
+            products = productRepository.findByCategoryId(id, pageable);
         }
-
-        Page<Product> products = productRepository.findByCategoryId(id, pageable);
         products.getContent().forEach(product -> product.setImages(imageRepository.findByProductId(product.getId())));
         return products;
     }
 
     public Page<Product> findByNameContaining(String name, String sortBy, boolean ascending, Pageable pageable) {
-        if (!"none".equalsIgnoreCase(sortBy)) {
+        Page<Product> products;
+        if ("noFilter".equalsIgnoreCase(sortBy)) {
+            products = productRepository.findByNameContaining(name, pageable);
+        } else if ("rating".equalsIgnoreCase(sortBy)) {
+            products = productRepository.findByNameContainingOrderByAverageRating(name, pageable);
+        } else {
             Sort sort = Sort.by(ascending ? Sort.Direction.ASC : Sort.Direction.DESC, sortBy);
             pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
+            products = productRepository.findByNameContaining(name, pageable);
         }
-        Page<Product> products = productRepository.findByNameContaining(name, pageable);
         products.getContent().forEach(product -> product.setImages(imageRepository.findByProductId(product.getId())));
         return products;
     }
