@@ -7,6 +7,8 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "user_address")
@@ -38,7 +40,7 @@ public class UserAddress {
 
     @Column(name = "address_type")
     @Enumerated(EnumType.STRING)
-    private AddressType addressType; // ENUM (billing, shipping, both)
+    private AddressType addressType;
 
     @Column(name = "date_created")
     @CreationTimestamp
@@ -48,4 +50,6 @@ public class UserAddress {
     @UpdateTimestamp
     private Date lastUpdated;
 
-   }
+    @OneToMany(mappedBy = "userAddress", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<Lives> users = new HashSet<>();
+}

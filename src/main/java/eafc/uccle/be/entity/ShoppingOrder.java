@@ -1,7 +1,10 @@
 package eafc.uccle.be.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
+import org.hibernate.annotations.GenericGenerator;
+
 import java.util.Date;
 import java.util.List;
 
@@ -11,15 +14,19 @@ import java.util.List;
 public class ShoppingOrder {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id_shopping_order")
-    private Long id;
+    @GeneratedValue(generator = "UUID")
+    @GenericGenerator(name = "UUID", strategy = "org.hibernate.id.UUIDGenerator")
+    @Column(name = "id_shopping_order", updatable = false, nullable = false, columnDefinition = "CHAR(36)")
+    private String id;
 
     @Column(name = "order_date")
     private Date orderDate;
 
     @Column(name = "total_price")
-    private double totalPrice;
+    private String totalPrice;
+
+    @Column(name = "total_quantity")
+    private int totalQuantity;
 
     @Column(name = "billing_address")
     private String billingAddress;
@@ -33,14 +40,19 @@ public class ShoppingOrder {
     @Column(name = "payment_status")
     private String paymentStatus;
 
+    @Column(name = "delivery_method")
+    private String deliveryMethod;
+
     @Column(name = "delivery_status")
     private String deliveryStatus;
 
     @ManyToOne
     @JoinColumn(name = "id_user", nullable = false)
+    @JsonIgnore
     private User user;
 
     @OneToMany(mappedBy = "shoppingOrder", cascade = CascadeType.ALL)
+    @JsonIgnore
     private List<ShoppingDetails> shoppingDetails;
 
 }
