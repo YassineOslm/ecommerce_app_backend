@@ -242,9 +242,6 @@ public class CheckoutService {
 
             document.close();
 
-
-            document.close();
-
         } catch (IOException e) {
             e.printStackTrace();
         }

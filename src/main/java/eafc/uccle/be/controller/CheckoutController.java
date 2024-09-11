@@ -2,6 +2,7 @@ package eafc.uccle.be.controller;
 
 import eafc.uccle.be.dto.Purchase;
 import eafc.uccle.be.service.CheckoutService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -13,6 +14,7 @@ import java.util.Map;
 @CrossOrigin("http://localhost:4200")
 @RestController
 @RequestMapping("/api/checkout")
+@Slf4j
 public class CheckoutController {
 
     private final CheckoutService checkoutService;
@@ -28,6 +30,8 @@ public class CheckoutController {
 
         byte[] pdfBytes = (byte[]) result.get("pdfBytes");
         String orderId = (String) result.get("orderId");
+
+        log.info("new order with id : {}", orderId);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_PDF);
