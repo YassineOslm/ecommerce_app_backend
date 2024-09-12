@@ -227,7 +227,7 @@ public class CheckoutService {
             Table totalQuantityRow = new Table(fiveColumnWidth);
             totalQuantityRow.addCell(new Cell(1, 3).add("").setBorder(Border.NO_BORDER)); // Cells vides pour aligner
             totalQuantityRow.addCell(new Cell().add(labels.get("totalQuantityLabel")).setBorder(Border.NO_BORDER).setBold().setMarginRight(20f));
-            totalQuantityRow.addCell(new Cell().add(parameters.get("totalQuantity")).setBorder(Border.NO_BORDER).setMarginRight(55f));
+            totalQuantityRow.addCell(new Cell().add(parameters.get("totalQuantity")).setBorder(Border.NO_BORDER).setMarginRight(55f).setTextAlignment(TextAlignment.LEFT));
             document.add(totalQuantityRow);
 
             // Ligne pour le prix de la livraison

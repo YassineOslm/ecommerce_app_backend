@@ -9,6 +9,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.util.Map;
+
 
 @Service
 public class ProductService {
@@ -19,6 +21,18 @@ public class ProductService {
     public ProductService(ProductRepository productRepository, ImageRepository imageRepository) {
         this.productRepository = productRepository;
         this.imageRepository = imageRepository;
+    }
+
+
+    public Map<String, Object> getAllProducts(Pageable pageable) {
+        Page<Product>  products = productRepository.findAll(pageable);
+        return Map.of(
+                "number", products.getNumber(),
+                "size", products.getSize(),
+                "totalElements", products.getTotalElements(),
+                "totalPages", products.getTotalPages(),
+                "content", products.getContent()
+        );
     }
 
     public Page<Product> getProductByCategoryId(Long id, String sortBy, boolean ascending, Pageable pageable){

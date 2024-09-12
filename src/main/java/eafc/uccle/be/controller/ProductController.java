@@ -23,6 +23,13 @@ public class ProductController {
         this.productService = productService;
     }
 
+
+    @GetMapping("/listPaginated")
+    public ResponseEntity<Map<String, Object>> getProducts(Pageable pageable) {
+        Map<String, Object> response = productService.getAllProducts(pageable);
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
     @GetMapping("/searchByCatId")
     public ResponseEntity<Map<String, Object>> getProductByCategoryId(
             @RequestParam Long id,
