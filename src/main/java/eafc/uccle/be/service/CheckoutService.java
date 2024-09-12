@@ -3,6 +3,7 @@ package eafc.uccle.be.service;
 import com.itextpdf.io.image.ImageData;
 import com.itextpdf.io.image.ImageDataFactory;
 import com.itextpdf.kernel.geom.Rectangle;
+import com.itextpdf.kernel.pdf.PdfPage;
 import com.itextpdf.kernel.pdf.canvas.PdfCanvas;
 import com.itextpdf.kernel.pdf.extgstate.PdfExtGState;
 import com.itextpdf.layout.element.Image;
@@ -12,6 +13,7 @@ import eafc.uccle.be.dao.ShoppingOrderRepository;
 import eafc.uccle.be.dao.UserRepository;
 import eafc.uccle.be.dto.Purchase;
 import eafc.uccle.be.dto.ShoppingDetailsDto;
+import eafc.uccle.be.entity.Product;
 import eafc.uccle.be.entity.ShoppingDetails;
 import eafc.uccle.be.entity.ShoppingOrder;
 import jakarta.transaction.Transactional;
@@ -70,13 +72,19 @@ public class CheckoutService {
         ShoppingOrder savedOrder = shoppingOrderRepository.save(order);
 
         for (ShoppingDetailsDto item : purchase.getOrderItems()) {
+            Product p = productRepository.findById((long) item.getIdProduct()).orElse(null);
             ShoppingDetails newShoppingDetails = new ShoppingDetails();
             newShoppingDetails.setQuantity(item.getQuantity());
             newShoppingDetails.setUnitPrice(item.getUnitPrice());
             newShoppingDetails.setSubTotalPrice(item.getSubTotalPrice());
             newShoppingDetails.setShoppingOrder(savedOrder);
-            newShoppingDetails.setProduct(productRepository.findById((long) item.getIdProduct()).orElse(null));
+            newShoppingDetails.setProduct(p);
             shoppingDetailsRepository.save(newShoppingDetails);
+
+            // Update units in stock
+            p.setUnitsInStock(p.getUnitsInStock() - item.getQuantity());
+            productRepository.save(p);
+
         }
 
         byte[] pdfBytes = generateOrderPdf(purchase, savedOrder.getId());
@@ -90,27 +98,27 @@ public class CheckoutService {
 
 
     public byte[] generateOrderPdf(Purchase purchase, String newId) {
-
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
 
         try {
+            // Chemin de l'image dans le dossier resources
             String imagePath = Paths.get("src/main/resources/images/logo.png").toAbsolutePath().toString();
-
             ImageData imageData = ImageDataFactory.create(imagePath);
-            Image backgroundImage = new Image(imageData);
 
             // Initialisation du document PDF
             PdfWriter pdfWriter = new PdfWriter(byteArrayOutputStream);
             PdfDocument pdfDocument = new PdfDocument(pdfWriter);
             pdfDocument.setDefaultPageSize(PageSize.A4);
+
+            // Ajouter la première page explicitement
+            PdfPage firstPage = pdfDocument.addNewPage();
             Document document = new Document(pdfDocument);
 
-            pdfDocument.addNewPage();
+            // Ajouter l'image de fond sur la première page
+            PdfCanvas canvas = new PdfCanvas(firstPage);
             Rectangle pageSize = pdfDocument.getDefaultPageSize();
             PdfExtGState gs1 = new PdfExtGState();
             gs1.setFillOpacity(0.1f);
-
-            PdfCanvas canvas = new PdfCanvas(pdfDocument.getFirstPage());
             canvas.saveState();
             canvas.setExtGState(gs1);
             canvas.addImage(imageData, pageSize.getWidth(), 0, 0, pageSize.getHeight(), 0, 0);
@@ -119,7 +127,7 @@ public class CheckoutService {
             // Labels
             Map<String, String> labels = getLabels();
 
-            // Parameters
+            // Paramètres
             Map<String, String> parameters = new HashMap<>();
             parameters.put("id_receipt", "ORD-" + newId);
             parameters.put("date", new SimpleDateFormat("dd-MM-yyyy HH:mm:ss").format(new Date()));
@@ -133,10 +141,11 @@ public class CheckoutService {
             parameters.put("phoneNumber", purchase.getUser().getPhoneNumber());
             parameters.put("totalQuantity", String.valueOf(purchase.getOrder().getTotalQuantity()));
             parameters.put("totalPrice", String.valueOf(purchase.getOrder().getTotalPrice()));
+            parameters.put("deliveryPrice", purchase.getOrder().getDeliveryMethod().split("-")[1].trim());
 
             List<ShoppingDetailsDto> orderItems = purchase.getOrderItems().stream().toList();
 
-            // Header Section
+            // Création des tableaux
             float threecol = 190f;
             float twocol = 285f;
             float twocol150 = twocol + 150f;
@@ -163,7 +172,7 @@ public class CheckoutService {
             document.add(divider);
             document.add(onesp);
 
-            // Address + Client Infos Section
+            // Section pour les adresses et infos client
             Table twoColTable = new Table(twoColumnWidth);
             twoColTable.addCell(getBillingAndShippingCell(labels.get("BillingAddressLabel")));
             twoColTable.addCell(getBillingAndShippingCell(labels.get("ShippingAddressLabel")));
@@ -189,7 +198,7 @@ public class CheckoutService {
             DashedBorder dgb = new DashedBorder(Color.GRAY, 0.5f);
             document.add(tableDivider2.setBorder(dgb));
 
-            // Products Section
+            // Section Produits
             Paragraph productParagraph = new Paragraph("Products");
             document.add(productParagraph.setBold());
 
@@ -207,25 +216,33 @@ public class CheckoutService {
                 Table itemRow = new Table(fiveColumnWidth);
                 itemRow.addCell(new Cell().add(String.valueOf(item.getIdProduct())).setBorder(Border.NO_BORDER).setTextAlignment(TextAlignment.CENTER));
                 itemRow.addCell(new Cell().add(item.getName()).setBorder(Border.NO_BORDER).setTextAlignment(TextAlignment.CENTER));
-                itemRow.addCell(new Cell().add(item.getUnitPrice()).setBorder(Border.NO_BORDER).setTextAlignment(TextAlignment.CENTER));
-                itemRow.addCell(new Cell().add(String.valueOf(item.getQuantity())).setBorder(Border.NO_BORDER).setTextAlignment(TextAlignment.CENTER));
-                itemRow.addCell(new Cell().add(item.getSubTotalPrice()).setBorder(Border.NO_BORDER).setTextAlignment(TextAlignment.CENTER));
+                itemRow.addCell(new Cell().add(item.getUnitPrice()).setBorder(Border.NO_BORDER).setTextAlignment(TextAlignment.RIGHT));
+                itemRow.addCell(new Cell().add(String.valueOf(item.getQuantity())).setBorder(Border.NO_BORDER).setTextAlignment(TextAlignment.RIGHT));
+                itemRow.addCell(new Cell().add(item.getSubTotalPrice()).setBorder(Border.NO_BORDER).setTextAlignment(TextAlignment.RIGHT));
                 document.add(itemRow);
             }
 
-            // Add the total row after listing all products
-            Table totalRow = new Table(fiveColumnWidth);
-            totalRow.addCell(new Cell(1, 3).add("").setBorder(Border.NO_BORDER)); // Empty cells for description columns
-            totalRow.addCell(new Cell().add(labels.get("totalQuantityLabel")).setBorder(Border.NO_BORDER).setBold().setTextAlignment(TextAlignment.CENTER));
-            totalRow.addCell(new Cell().add(parameters.get("totalQuantity")).setBorder(Border.NO_BORDER).setTextAlignment(TextAlignment.CENTER));
-            document.add(totalRow);
 
+            // Ligne pour la quantité totale en bas de la colonne "Quantity"
+            Table totalQuantityRow = new Table(fiveColumnWidth);
+            totalQuantityRow.addCell(new Cell(1, 3).add("").setBorder(Border.NO_BORDER)); // Cells vides pour aligner
+            totalQuantityRow.addCell(new Cell().add(labels.get("totalQuantityLabel")).setBorder(Border.NO_BORDER).setBold().setMarginRight(20f));
+            totalQuantityRow.addCell(new Cell().add(parameters.get("totalQuantity")).setBorder(Border.NO_BORDER).setMarginRight(55f));
+            document.add(totalQuantityRow);
+
+            // Ligne pour le prix de la livraison
+            Table deliveryPriceRow = new Table(fiveColumnWidth);
+            deliveryPriceRow.addCell(new Cell(1, 3).add("").setBorder(Border.NO_BORDER)); // Cells vides pour aligner
+            deliveryPriceRow.addCell(new Cell().add("Delivery Price").setBorder(Border.NO_BORDER).setBold().setTextAlignment(TextAlignment.RIGHT));
+            deliveryPriceRow.addCell(new Cell().add(parameters.get("deliveryPrice")).setBorder(Border.NO_BORDER).setTextAlignment(TextAlignment.RIGHT));
+            document.add(deliveryPriceRow);
+
+            // Ligne pour le total
             Table totalPriceRow = new Table(fiveColumnWidth);
-            totalPriceRow.addCell(new Cell(1, 3).add("").setBorder(Border.NO_BORDER)); // Empty cells for description columns
-            totalPriceRow.addCell(new Cell().add(labels.get("totalPriceLabel")).setBorder(Border.NO_BORDER).setBold().setTextAlignment(TextAlignment.CENTER));
-            totalPriceRow.addCell(new Cell().add(parameters.get("totalPrice")).setBorder(Border.NO_BORDER).setTextAlignment(TextAlignment.CENTER));
+            totalPriceRow.addCell(new Cell(1, 3).add("").setBorder(Border.NO_BORDER)); // Cells vides pour aligner
+            totalPriceRow.addCell(new Cell().add(labels.get("totalPriceLabel")).setBorder(Border.NO_BORDER).setBold().setTextAlignment(TextAlignment.RIGHT));
+            totalPriceRow.addCell(new Cell().add(parameters.get("totalPrice")).setBorder(Border.NO_BORDER).setTextAlignment(TextAlignment.RIGHT));
             document.add(totalPriceRow);
-
 
             document.add(onesp);
             document.add(divider);
@@ -247,6 +264,9 @@ public class CheckoutService {
         }
         return byteArrayOutputStream.toByteArray();
     }
+
+
+
 
 
     private static Map<String, String> getLabels() {
