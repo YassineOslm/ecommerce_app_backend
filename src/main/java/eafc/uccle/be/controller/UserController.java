@@ -1,5 +1,6 @@
 package eafc.uccle.be.controller;
 
+import eafc.uccle.be.dto.UserDto;
 import eafc.uccle.be.entity.User;
 import eafc.uccle.be.entity.UserAddress;
 import eafc.uccle.be.service.UserService;
@@ -38,19 +39,9 @@ public class UserController {
     }
 
     @PostMapping("/create")
-    public ResponseEntity<User> createUser(@RequestBody User user) {
+    public ResponseEntity<User> createUser(@RequestBody UserDto user) {
         User createdUser = userService.createUser(user);
         return ResponseEntity.ok(createdUser);
     }
-
-    /*@PostMapping("/{id}/addresses")
-    public ResponseEntity<User> addUserAddress(@PathVariable Long id, @RequestBody UserAddress userAddress) {
-        User updatedUser = userService.addUserAddress(id, userAddress);
-        if (updatedUser != null) {
-            return ResponseEntity.ok(updatedUser);
-        } else {
-            return ResponseEntity.notFound().build();
-        }
-    }*/
 }
 

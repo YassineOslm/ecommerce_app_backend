@@ -5,8 +5,11 @@ import lombok.NonNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+
+import java.util.List;
 import java.util.Optional;
 
 public interface ProductRepository extends JpaRepository<Product, Long> {
@@ -23,5 +26,12 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     @Query("SELECT p FROM Product p LEFT JOIN Comment c ON p.id = c.product.id WHERE p.name LIKE %:name% GROUP BY p.id ORDER BY AVG(c.grade) DESC")
     Page<Product> findByNameContainingOrderByAverageRating(String name, Pageable pageable);
+
+    @Query(value = "SELECT * FROM product WHERE id_category = :categoryId", nativeQuery = true)
+    List<Product> findProductsByCategoryId(Long categoryId);
+
+    @Modifying
+    @Query(value = "DELETE FROM product WHERE id_category = :categoryId", nativeQuery = true)
+    void deleteProductsByCategoryId(Long categoryId);
 
 }
