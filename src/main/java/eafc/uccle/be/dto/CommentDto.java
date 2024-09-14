@@ -17,6 +17,9 @@ public class CommentDto {
     private String comment;
     private float grade;
 
+    public CommentDto() {
+    }
+
     public CommentDto(Comment comment) {
         this.id = comment.getId();
         this.idUser = comment.getUser().getId();

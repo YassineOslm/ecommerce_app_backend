@@ -1,6 +1,6 @@
 package eafc.uccle.be.controller;
 
-import eafc.uccle.be.dto.ProductRatingDto;
+import eafc.uccle.be.dto.CommentDto;
 import eafc.uccle.be.entity.Comment;
 import eafc.uccle.be.service.CommentService;
 import org.springframework.data.domain.Pageable;
@@ -8,7 +8,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.Map;
 
 @CrossOrigin("http://localhost:4200")
@@ -65,6 +64,24 @@ public class CommentController {
     public ResponseEntity<Map<Long, Double>> getAverageRatingForProducts() {
         Map<Long, Double> averageRatings = commentService.getAverageRatingForProducts();
         return new ResponseEntity<>(averageRatings, HttpStatus.OK);
+    }
+
+    @GetMapping("comments/{id}")
+    public ResponseEntity<CommentDto> getCommentById(@PathVariable Long id) {
+        CommentDto commentDto = commentService.getCommentById(id);
+        return ResponseEntity.ok(commentDto);
+    }
+
+    @PutMapping("/comments/{id}")
+    public ResponseEntity<Comment> updateComment(@PathVariable Long id, @RequestBody CommentDto commentDto) {
+        Comment updatedComment = commentService.updateComment(id, commentDto);
+        return new ResponseEntity<>(updatedComment, HttpStatus.OK);
+    }
+
+    @DeleteMapping("/comments/{id}")
+    public ResponseEntity<Void> deleteComment(@PathVariable Long id) {
+        commentService.deleteCommentById(id);
+        return ResponseEntity.noContent().build();
     }
 
 }

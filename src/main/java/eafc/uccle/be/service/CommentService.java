@@ -80,4 +80,39 @@ public class CommentService {
                 )
         );
     }
+
+
+    @Transactional
+    public Comment updateComment(Long id, CommentDto commentDto) {
+        Comment existingComment = commentRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Comment not found with ID: " + id));
+        existingComment.setComment(commentDto.getComment());
+        existingComment.setGrade(commentDto.getGrade());
+        return commentRepository.save(existingComment);
+    }
+
+    public CommentDto getCommentById(Long id) {
+        Comment comment = commentRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Comment not found"));
+        return mapToDto(comment);
+    }
+
+    private CommentDto mapToDto(Comment comment) {
+        CommentDto dto = new CommentDto();
+        dto.setId(comment.getId());
+        dto.setIdUser(comment.getUser().getId());
+        dto.setUserFirstName(comment.getUser().getFirstname());
+        dto.setUserLastName(comment.getUser().getLastname());
+        dto.setGender(comment.getUser().getGender());
+        dto.setComment(comment.getComment());
+        dto.setGrade(comment.getGrade());
+        dto.setDateCreated(comment.getDateCreated());
+        return dto;
+    }
+
+    @Transactional
+    public void deleteCommentById(Long id) {
+        commentRepository.deleteCommentById(id);
+    }
+
 }
