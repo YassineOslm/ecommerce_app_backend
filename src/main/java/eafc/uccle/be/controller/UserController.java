@@ -41,11 +41,13 @@ public class UserController {
     @GetMapping("/{id}/addresses")
     public ResponseEntity<Set<UserAddress>> getUserAddresses(@PathVariable Long id) {
         Set<UserAddress> addresses = userService.getUserAddresses(id);
-        if (addresses != null && !addresses.isEmpty()) {
-            return ResponseEntity.ok(addresses);
-        } else {
-            return ResponseEntity.notFound().build();
-        }
+        return ResponseEntity.ok(addresses);
+    }
+
+    @PostMapping("/{id}/addAddress")
+    public ResponseEntity<UserAddress> addUserAddress(@PathVariable Long id, @RequestBody UserAddress address) {
+        UserAddress createdAddress =  userService.addAddressToUser(id, address);
+        return ResponseEntity.ok(createdAddress);
     }
 
     @PostMapping("/create")

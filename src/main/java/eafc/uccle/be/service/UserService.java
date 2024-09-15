@@ -1,9 +1,11 @@
 package eafc.uccle.be.service;
 
+import eafc.uccle.be.dao.LivesRepository;
 import eafc.uccle.be.dao.RoleRepository;
 import eafc.uccle.be.dao.UserAddressRepository;
 import eafc.uccle.be.dao.UserRepository;
 import eafc.uccle.be.dto.UserDto;
+import eafc.uccle.be.entity.Lives;
 import eafc.uccle.be.entity.Role;
 import eafc.uccle.be.entity.User;
 import eafc.uccle.be.entity.UserAddress;
@@ -24,13 +26,14 @@ public class UserService {
 
     @Autowired
     private final UserAddressRepository userAddressRepository;
-
     private final RoleRepository roleRepository;
+    private final LivesRepository livesRepository;
 
-    public UserService(UserRepository userRepository, UserAddressRepository userAddressRepository, RoleRepository roleRepository) {
+    public UserService(UserRepository userRepository, UserAddressRepository userAddressRepository, RoleRepository roleRepository, LivesRepository livesRepository) {
         this.userRepository = userRepository;
         this.userAddressRepository = userAddressRepository;
         this.roleRepository = roleRepository;
+        this.livesRepository = livesRepository;
     }
 
 
@@ -65,6 +68,17 @@ public class UserService {
 
     public User getUserByEmail(String email) {
         return userRepository.findUserByEmail(email);
+    }
+
+    @Transactional
+    public UserAddress addAddressToUser(Long idUser, UserAddress address) {
+        User user = userRepository.findById(idUser).orElse(null);
+        UserAddress savedAddress = userAddressRepository.save(address);
+        Lives lives = new Lives();
+        lives.setUser(user);
+        lives.setUserAddress(savedAddress);
+        livesRepository.save(lives);
+        return savedAddress;
     }
 
     /*public boolean removeUserAddress(Long userId, Long addressId) {
