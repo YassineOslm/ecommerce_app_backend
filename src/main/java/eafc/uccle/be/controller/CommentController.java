@@ -33,9 +33,9 @@ public class CommentController {
 
     @PostMapping("/{id}/addComment")
     public ResponseEntity<Map<String, Object>> addNewComment(@RequestBody Comment comment) {
-        commentService.addNewComment(comment);
+        CommentDto newComment = commentService.addNewComment(comment);
         Map<String, Object> response = Map.of(
-                "content", "added"
+                "content", newComment
         );
         return new ResponseEntity<>(response, HttpStatus.OK);
     }

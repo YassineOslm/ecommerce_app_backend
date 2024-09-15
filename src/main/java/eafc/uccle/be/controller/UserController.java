@@ -28,6 +28,16 @@ public class UserController {
         }
     }
 
+    @GetMapping("/email/{email}")
+    public ResponseEntity<User> getUserByEmail(@PathVariable String email) {
+        User user = userService.getUserByEmail(email);
+        if (user != null) {
+            return ResponseEntity.ok(user);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
     @GetMapping("/{id}/addresses")
     public ResponseEntity<Set<UserAddress>> getUserAddresses(@PathVariable Long id) {
         Set<UserAddress> addresses = userService.getUserAddresses(id);
@@ -43,5 +53,8 @@ public class UserController {
         User createdUser = userService.createUser(user);
         return ResponseEntity.ok(createdUser);
     }
+
+
+
 }
 

@@ -63,8 +63,11 @@ public class UserService {
         }
     }
 
+    public User getUserByEmail(String email) {
+        return userRepository.findUserByEmail(email);
+    }
 
-    public boolean removeUserAddress(Long userId, Long addressId) {
+    /*public boolean removeUserAddress(Long userId, Long addressId) {
         Optional<User> userOptional = userRepository.findById(userId);
         Optional<UserAddress> addressOptional = userAddressRepository.findById(addressId);
 
@@ -77,7 +80,7 @@ public class UserService {
             return true;
         }
         return false;
-    }
+    }*/
 
     @Transactional
     public User updateUser(Long userId, User userDetails) {

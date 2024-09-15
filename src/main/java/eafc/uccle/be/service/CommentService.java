@@ -51,7 +51,7 @@ public class CommentService {
     }
 
     @Transactional
-    public void addNewComment(Comment comment) {
+    public CommentDto addNewComment(Comment comment) {
         Comment newComment = Comment.builder()
                 .comment(comment.getComment())
                 .grade(comment.getGrade())
@@ -59,7 +59,7 @@ public class CommentService {
                 .product(productRepository.findById(comment.getProduct().getId()).orElse(null))
                 .user(userRepository.findById(comment.getUser().getId()).orElse(null))
                 .build();
-        commentRepository.save(newComment);
+        return mapToDto(commentRepository.save(newComment));
     }
 
     public Integer getCommentCountByProductId(Long productId) {
