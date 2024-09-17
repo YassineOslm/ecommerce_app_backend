@@ -6,11 +6,14 @@ import com.itextpdf.kernel.geom.Rectangle;
 import com.itextpdf.kernel.pdf.PdfPage;
 import com.itextpdf.kernel.pdf.canvas.PdfCanvas;
 import com.itextpdf.kernel.pdf.extgstate.PdfExtGState;
-import com.itextpdf.layout.element.Image;
+import com.stripe.Stripe;
+import com.stripe.exception.StripeException;
+import com.stripe.model.PaymentIntent;
 import eafc.uccle.be.dao.ProductRepository;
 import eafc.uccle.be.dao.ShoppingDetailsRepository;
 import eafc.uccle.be.dao.ShoppingOrderRepository;
 import eafc.uccle.be.dao.UserRepository;
+import eafc.uccle.be.dto.PaymentInfo;
 import eafc.uccle.be.dto.Purchase;
 import eafc.uccle.be.dto.ShoppingDetailsDto;
 import eafc.uccle.be.entity.Product;
@@ -18,6 +21,7 @@ import eafc.uccle.be.entity.ShoppingDetails;
 import eafc.uccle.be.entity.ShoppingOrder;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import com.itextpdf.kernel.color.Color;
 import com.itextpdf.kernel.geom.PageSize;
@@ -46,11 +50,13 @@ public class CheckoutService {
     private final UserRepository userRepository;
     private final ProductRepository productRepository;
 
-    public CheckoutService(ShoppingOrderRepository shoppingOrderRepository, ShoppingDetailsRepository shoppingDetailsRepository, UserRepository userRepository, ProductRepository productRepository) {
+    public CheckoutService(@Value("${stripe.key.secret}") String secretKey, ShoppingOrderRepository shoppingOrderRepository, ShoppingDetailsRepository shoppingDetailsRepository, UserRepository userRepository, ProductRepository productRepository) {
         this.shoppingOrderRepository = shoppingOrderRepository;
         this.shoppingDetailsRepository = shoppingDetailsRepository;
         this.userRepository = userRepository;
         this.productRepository = productRepository;
+
+        Stripe.apiKey = secretKey;
     }
 
 
@@ -265,10 +271,6 @@ public class CheckoutService {
         return byteArrayOutputStream.toByteArray();
     }
 
-
-
-
-
     private static Map<String, String> getLabels() {
         Map<String, String> labels = new HashMap<>();
         labels.put("BillingAddressLabel", "Billing Information");
@@ -300,5 +302,18 @@ public class CheckoutService {
         Cell myCell = new Cell().add(textValue).setFontSize(10f).setBorder(Border.NO_BORDER).setTextAlignment(TextAlignment.LEFT);
         return isBold ? myCell.setBold() : myCell;
     }
+
+    public PaymentIntent createPaymentIntent(PaymentInfo paymentInfo) throws StripeException {
+        List<String> paymentMethodTypes = new ArrayList<>();
+        paymentMethodTypes.add("card");
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("amount", paymentInfo.getAmount());
+        params.put("currency", paymentInfo.getCurrency());
+        params.put("payment_method_types", paymentMethodTypes);
+
+        return PaymentIntent.create(params);
+    }
+
 
 }

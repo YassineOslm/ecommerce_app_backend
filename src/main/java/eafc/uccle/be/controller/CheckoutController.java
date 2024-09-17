@@ -1,5 +1,8 @@
 package eafc.uccle.be.controller;
 
+import com.stripe.exception.StripeException;
+import com.stripe.model.PaymentIntent;
+import eafc.uccle.be.dto.PaymentInfo;
 import eafc.uccle.be.dto.Purchase;
 import eafc.uccle.be.service.CheckoutService;
 import lombok.extern.slf4j.Slf4j;
@@ -39,6 +42,13 @@ public class CheckoutController {
         headers.add("Order-ID", orderId);
 
         return new ResponseEntity<>(pdfBytes, headers, HttpStatus.OK);
+    }
+
+    @PostMapping("/payment-intent")
+    public ResponseEntity<String> createPaymentIntent(@RequestBody PaymentInfo paymentInfo) throws StripeException {
+        PaymentIntent paymentIntent = checkoutService.createPaymentIntent(paymentInfo);
+        String paymentStr = paymentIntent.toJson();
+        return new ResponseEntity<>(paymentStr, HttpStatus.OK);
     }
 
 }

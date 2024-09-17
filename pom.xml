@@ -61,6 +61,12 @@
             <type>pom</type>
         </dependency>
 
+        <!-- https://mvnrepository.com/artifact/com.stripe/stripe-java -->
+        <dependency>
+            <groupId>com.stripe</groupId>
+            <artifactId>stripe-java</artifactId>
+            <version>26.11.0</version>
+        </dependency>
 
     </dependencies>
 

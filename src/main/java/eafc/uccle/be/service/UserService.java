@@ -81,20 +81,6 @@ public class UserService {
         return savedAddress;
     }
 
-    /*public boolean removeUserAddress(Long userId, Long addressId) {
-        Optional<User> userOptional = userRepository.findById(userId);
-        Optional<UserAddress> addressOptional = userAddressRepository.findById(addressId);
-
-        if (userOptional.isPresent() && addressOptional.isPresent()) {
-            User user = userOptional.get();
-            UserAddress address = addressOptional.get();
-            user.getAddresses().remove(address);
-            userAddressRepository.delete(address);
-            userRepository.save(user);
-            return true;
-        }
-        return false;
-    }*/
 
     @Transactional
     public User updateUser(Long userId, User userDetails) {
